@@ -50,7 +50,7 @@ describe('Kylo Ren, Killing the Past', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['kylo-ren#killing-the-past', 'pyke-sentinel', 'battlefield-marine'],
+                        groundArena: ['kylo-ren#killing-the-past', 'pyke-sentinel', 'battlefield-marine', 'wild-rancor'],
                         base: 'kestro-city',
                         leader: 'rey#more-than-a-scavenger'
                     },
@@ -64,7 +64,7 @@ describe('Kylo Ren, Killing the Past', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kyloRen);
-                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors]);
+                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors, context.wildRancor]);
                 context.player1.clickCard(context.concordDawnInterceptors);
                 expect(context.concordDawnInterceptors.getPower()).toBe(4);
                 expect(context.concordDawnInterceptors.getHp()).toBe(5);
@@ -79,7 +79,7 @@ describe('Kylo Ren, Killing the Past', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.kyloRen);
-                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors]);
+                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors, context.wildRancor]);
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.pykeSentinel.getPower()).toBe(4);
                 expect(context.pykeSentinel.getHp()).toBe(3);
@@ -88,6 +88,21 @@ describe('Kylo Ren, Killing the Past', function() {
                 context.moveToNextActionPhase();
                 expect(context.pykeSentinel.getPower()).toBe(2);
                 expect(context.pykeSentinel.getHp()).toBe(3);
+            });
+
+            it('gives +2/0 and an Experience token to a non-Villainy/non-Heroism unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.kyloRen);
+                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors, context.wildRancor]);
+                context.player1.clickCard(context.wildRancor);
+                expect(context.wildRancor.getPower()).toBe(9);
+                expect(context.wildRancor.getHp()).toBe(9);
+
+                // Ensure buff is gone but experience remains
+                context.moveToNextActionPhase();
+                expect(context.wildRancor.getPower()).toBe(7);
+                expect(context.wildRancor.getHp()).toBe(9);
             });
         });
     });

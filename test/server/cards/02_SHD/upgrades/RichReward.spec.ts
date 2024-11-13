@@ -93,6 +93,25 @@ describe('Rich Reward', function() {
                 expect(context.yoda).toHaveExactUpgradeNames(['experience']);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should automatically pass if there is no other units', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: [{ card: 'phaseiii-dark-trooper', upgrades: ['rich-reward'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.phaseiiiDarkTrooper);
+
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

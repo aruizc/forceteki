@@ -108,7 +108,6 @@ describe('Rich Reward', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickCard(context.phaseiiiDarkTrooper);
 
                 expect(context.player2).toBeActivePlayer();
             });

@@ -15,7 +15,7 @@ export default class RichReward extends UpgradeCard {
         this.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
-                title: 'Give an Experience token to each of up to 2 units.',
+                title: 'Give an Experience token to each of up to 2 units',
                 targetResolver: {
                     mode: TargetMode.UpTo,
                     numCards: 2,

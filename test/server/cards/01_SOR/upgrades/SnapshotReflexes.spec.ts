@@ -14,19 +14,31 @@ describe('Snapshot Reflexes', function() {
                 });
             });
 
-            it('attached unit attacks when played', function () {
+            it('attached unit may attack when played', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.snapshotReflexes);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.player1).toBeAbleToSelectExactly(context.specforceSoldier);
-
+                context.player1.clickPrompt('You may attack with attached unit.');
                 context.player1.clickCard(context.specforceSoldier);
 
-                expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['snapshot-reflexes']);
-                expect(context.battlefieldMarine.exhausted).toBeTrue();
+                expect(context.battlefieldMarine.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('attached unit may attack when played, selects not to attack', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.snapshotReflexes);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                context.player1.passAction();
+
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['snapshot-reflexes']);
+                expect(context.battlefieldMarine.exhausted).toBe(false);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

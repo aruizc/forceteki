@@ -37,7 +37,6 @@ describe('Rey, Keeping the Past', function() {
                     context.rey.exhausted = false;
                     context.rey.damage = 0;
                     context.wildRancor.damage = 2;
-                    context.pykeSentinel.damage = 0;
                     if (passAction) {
                         context.player2.passAction();
                     }
@@ -58,6 +57,7 @@ describe('Rey, Keeping the Past', function() {
                 context.player1.clickCard(context.rey);
                 context.player1.clickCard(context.wildRancor);
                 expect(context.player1).toBeAbleToSelectExactly([context.rey, context.pykeSentinel, context.wildRancor, context.battlefieldMarine, context.mandalorianWarrior]);
+
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
                 expect(context.battlefieldMarine.isUpgraded()).toBeFalse(); // no shield
@@ -67,8 +67,10 @@ describe('Rey, Keeping the Past', function() {
 
                 context.player1.clickCard(context.rey);
                 context.player1.clickCard(context.wildRancor);
+                expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.rey, context.pykeSentinel, context.wildRancor, context.battlefieldMarine, context.mandalorianWarrior]);
                 context.player1.clickCard(context.mandalorianWarrior);
+
                 expect(context.mandalorianWarrior).toHaveExactUpgradeNames(['shield']);
             });
 

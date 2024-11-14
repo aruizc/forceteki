@@ -19,11 +19,12 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
 
         this.addOnAttackAbility({
             title: 'You may heal 2 damage from a unit. If it’s a non-Heroism unit, give a Shield token to it',
+            optional: true,
             targetResolver: {
                 controller: RelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.heal({ amount: 2, optional: true }),
+                    AbilityHelper.immediateEffects.heal({ amount: 2 }),
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => context.target.aspects.includes(Aspect.Heroism),
                         onTrue: AbilityHelper.immediateEffects.noAction(),

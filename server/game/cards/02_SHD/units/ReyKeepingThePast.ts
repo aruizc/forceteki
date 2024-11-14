@@ -23,7 +23,7 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
                 controller: RelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.heal({ amount: 2 }),
+                    AbilityHelper.immediateEffects.heal({ amount: 2, optional: true }),
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => context.target.aspects.includes(Aspect.Heroism),
                         onTrue: AbilityHelper.immediateEffects.noAction(),

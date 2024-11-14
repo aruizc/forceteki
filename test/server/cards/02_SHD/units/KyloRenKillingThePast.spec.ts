@@ -60,23 +60,17 @@ describe('Kylo Ren, Killing the Past', function() {
                 });
             });
 
-            it('gives +2/0 and an Experience to a non-Villainy unit', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.kyloRen);
-                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors, context.wildRancor]);
-                context.player1.clickCard(context.concordDawnInterceptors);
-                expect(context.concordDawnInterceptors.getPower()).toBe(4);
-                expect(context.concordDawnInterceptors.getHp()).toBe(5);
-
-                // Ensure buff is gone but experience remains
-                context.moveToNextActionPhase();
-                expect(context.concordDawnInterceptors.getPower()).toBe(2);
-                expect(context.concordDawnInterceptors.getHp()).toBe(5);
-            });
-
             it('gives +2/0 and no Experience to a villainy unit', function () {
                 const { context } = contextRef;
+
+                const reset = (passAction = true) => {
+                    context.kyloRen.exhausted = false;
+                    context.kyloRen.damage = 0;
+                    context.wildRancor.damage = 0;
+                    if (passAction) {
+                        context.player2.passAction();
+                    }
+                };
 
                 context.player1.clickCard(context.kyloRen);
                 expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors, context.wildRancor]);
@@ -88,11 +82,10 @@ describe('Kylo Ren, Killing the Past', function() {
                 context.moveToNextActionPhase();
                 expect(context.pykeSentinel.getPower()).toBe(2);
                 expect(context.pykeSentinel.getHp()).toBe(3);
-            });
 
-            it('gives +2/0 and an Experience token to a non-Villainy/non-Heroism unit', function () {
-                const { context } = contextRef;
+                reset(false);
 
+                // gives +2/0 and an Experience token to a non-Villainy/non-Heroism unit
                 context.player1.clickCard(context.kyloRen);
                 expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors, context.wildRancor]);
                 context.player1.clickCard(context.wildRancor);
@@ -103,6 +96,20 @@ describe('Kylo Ren, Killing the Past', function() {
                 context.moveToNextActionPhase();
                 expect(context.wildRancor.getPower()).toBe(7);
                 expect(context.wildRancor.getHp()).toBe(9);
+
+                reset(false);
+
+                // gives +2/0 and an Experience to a non-Villainy unit
+                context.player1.clickCard(context.kyloRen);
+                expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.battlefieldMarine, context.pykeSentinel, context.concordDawnInterceptors, context.wildRancor]);
+                context.player1.clickCard(context.concordDawnInterceptors);
+                expect(context.concordDawnInterceptors.getPower()).toBe(4);
+                expect(context.concordDawnInterceptors.getHp()).toBe(5);
+
+                // Ensure buff is gone but experience remains
+                context.moveToNextActionPhase();
+                expect(context.concordDawnInterceptors.getPower()).toBe(2);
+                expect(context.concordDawnInterceptors.getHp()).toBe(5);
             });
         });
     });

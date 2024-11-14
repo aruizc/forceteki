@@ -1,4 +1,4 @@
-import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { Aspect, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 

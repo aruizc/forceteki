@@ -13,7 +13,7 @@ describe('Volunteer Soldier', function() {
 
                 context.player1.clickCard(context.volunteerSoldier);
 
-                expect(context.player1.countExhaustedResources()).toBe(2);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
 
             it('should cost 3 if there is no tropper friendly unit', () => {
@@ -28,7 +28,7 @@ describe('Volunteer Soldier', function() {
 
                 context.player1.clickCard(context.volunteerSoldier);
 
-                expect(context.player1.countExhaustedResources()).toBe(3);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
             });
         });
     });

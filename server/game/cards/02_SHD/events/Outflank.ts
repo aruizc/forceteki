@@ -1,6 +1,5 @@
-import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardCardType, WildcardLocation } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
+import { EventCard } from '../../../core/card/EventCard';
 
 export default class Outflank extends EventCard {
     protected override getImplementationId () {
@@ -13,8 +12,8 @@ export default class Outflank extends EventCard {
     public override setupCardAbilities () {
         this.setEventAbility({
             title: 'Attack with two units (one at a time)',
-            initiateAttack: {
-
+            targetResolver: {
+                immediateEffect: AbilityHelper.immediateEffects.attack()
             },
             then: (thenContext) => ({
                 title: 'Attack with another unit',

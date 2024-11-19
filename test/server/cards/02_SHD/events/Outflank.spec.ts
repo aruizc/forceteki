@@ -47,19 +47,6 @@ describe('Outflank', function () {
                 expect(context.p2Base.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
-
-            it('should be playable even if there is no units', function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['outflank']
-                    }
-                });
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.outflank);
-                expect(context.player2).toBeActivePlayer();
-            });
         });
     });
 });

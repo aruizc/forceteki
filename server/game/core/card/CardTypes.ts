@@ -53,15 +53,11 @@ export type AnyCard =
   LeaderUnitCard |
   TokenUnitCard;
 
-/** Type union for any card type that can be played (not deployed) */
-export type PlayableCard =
+/** Type union for any card type that can be played or created (not deployed) */
+export type TokenOrPlayableCard =
   EventCard |
   UpgradeCard |
   NonLeaderUnitCard;
-
-export function isPlayable(card: Card): card is PlayableCard {
-    return card.isEvent() || card.isNonLeaderUnit() || card.isUpgrade();
-}
 
 // Base is the only type of card that isn't in the PlayableOrDeployable subclass
 type PlayableOrDeployableCardTypes = Exclude<AnyCard, BaseCard>;

@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import { AbilityContext } from '../core/ability/AbilityContext';
-import { Location, WildcardLocation } from '../core/Constants';
+import { ZoneName, DeckZoneDestination, PlayType } from '../core/Constants';
 
 // import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
 import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
@@ -73,6 +73,7 @@ import { DiscardFromDeckSystem, IDiscardFromDeckProperties } from './DiscardFrom
 import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
 import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
 import { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
+import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
 // import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
 // import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
 // import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
@@ -133,6 +134,9 @@ export function exhaust<TContext extends AbilityContext = AbilityContext>(proper
 export function forThisPhaseCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties, TContext>) {
     return new CardPhaseLastingEffectSystem<TContext>(propertyFactory);
 }
+export function forThisAttackCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardAttackLastingEffectProperties, TContext>) {
+    return new CardAttackLastingEffectSystem<TContext>(propertyFactory);
+}
 export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveExperienceProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new GiveExperienceSystem<TContext>(propertyFactory);
 }
@@ -160,27 +164,18 @@ export function moveCard<TContext extends AbilityContext = AbilityContext>(prope
 
 export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext>): CardTargetSystem<TContext> {
     return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'bottom'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: Location.Deck, bottom: true }
+            { destination: DeckZoneDestination.DeckBottom }
         )
     );
 }
 
 export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext>): CardTargetSystem<TContext> {
     return new MoveCardSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination' | 'bottom'>(
-            propertyFactory,
-            { destination: Location.Deck, bottom: false }
-        )
-    );
-}
-
-export function moveToDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IMoveCardProperties, TContext>): CardTargetSystem<TContext> {
-    return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: Location.Deck }
+            { destination: DeckZoneDestination.DeckTop }
         )
     );
 }
@@ -203,6 +198,14 @@ export function payResourceCost<TContext extends AbilityContext = AbilityContext
         GameSystem.appendToPropertiesOrPropertyFactory<IExhaustResourcesProperties, 'isCost'>(
             propertyFactory,
             { isCost: true }
+        )
+    );
+}
+export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext> = {}): PlayCardSystem<TContext> {
+    return new PlayCardSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IPlayCardProperties, 'playType'>(
+            propertyFactory,
+            { playType: PlayType.PlayFromOutOfPlay }
         )
     );
 }
@@ -252,7 +255,7 @@ export function returnToHand<TContext extends AbilityContext = AbilityContext>(p
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
-            { destination: Location.Hand }
+            { destination: ZoneName.Hand }
         )
     );
 }

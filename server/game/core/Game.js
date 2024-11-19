@@ -28,7 +28,7 @@ const { cards } = require('../cards/Index.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
-const { EffectName, EventName, Location, TokenName } = require('./Constants.js');
+const { EventName, ZoneName, TokenName, Trait } = require('./Constants.js');
 const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
 const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
@@ -37,6 +37,9 @@ const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerM
 const { DropdownListPrompt } = require('./gameSteps/prompts/DropdownListPrompt.js');
 const { UnitPropertiesCard } = require('./card/propertyMixins/UnitProperties.js');
 const { Card } = require('./card/Card.js');
+const { GroundArenaZone } = require('./zone/GroundArenaZone.js');
+const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
+const { AllArenasZone } = require('./zone/AllArenasZone.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -78,6 +81,9 @@ class Game extends EventEmitter {
 
         this.shortCardData = options.shortCardData || [];
 
+        // TODO TWIN SUNS
+        Contract.assertArraySize(details.players, 2, 'Game must have exactly 2 players');
+
         details.players.forEach((player) => {
             this.playersAndSpectators[player.user.username] = new Player(
                 player.id,
@@ -91,6 +97,12 @@ class Game extends EventEmitter {
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.user.username] = new Spectator(spectator.id, spectator.user);
         });
+
+        const [player1, player2] = this.getPlayers();
+
+        this.spaceArena = new SpaceArenaZone(this, player1, player2);
+        this.groundArena = new GroundArenaZone(this, player1, player2);
+        this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
 
@@ -272,22 +284,16 @@ class Game extends EventEmitter {
 
     /**
      * Returns all cards which matching the passed predicated function from either players arenas
-     * @param {Function} predicate - card => Boolean
+     * @param {(Card) => boolean} predicate - card => Boolean
      * @returns {Array} Array of DrawCard objects
      */
     findAnyCardsInPlay(predicate = () => true) {
-        var foundCards = [];
-
-        this.getPlayers().forEach((player) => {
-            foundCards = foundCards.concat(player.findCards(player.getArenaCards(), predicate));
-        });
-
-        return foundCards;
+        return this.allArenas.getCards({ condition: predicate });
     }
 
     /**
      * Returns if a card is in play (units, upgrades, base, leader) that has the passed trait
-     * @param {string} trait
+     * @param {Trait} trait
      * @returns {boolean} true/false if the trait is in pay
      */
     isTraitInPlay(trait) {
@@ -804,6 +810,13 @@ class Game extends EventEmitter {
 
     roundEnded() {
         this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, TriggerHandlingMode.ResolvesTriggers);
+
+        // at end of round, any tokens in outsideTheGameZone are removed completely
+        for (const player of this.getPlayers()) {
+            for (const token of player.outsideTheGameZone.cards.filter((card) => card.isToken())) {
+                this.removeTokenFromPlay(token);
+            }
+        }
     }
 
     claimInitiative(player) {
@@ -1116,7 +1129,7 @@ class Game extends EventEmitter {
     resolveGameState(hasChanged = false, events = []) {
         // first go through and enable / disabled abilities for cards that have been moved in or out of the arena
         for (const movedCard of this.movedCards) {
-            movedCard.resolveAbilitiesForNewLocation();
+            movedCard.resolveAbilitiesForNewZone();
         }
         this.movedCards = [];
 
@@ -1174,25 +1187,26 @@ class Game extends EventEmitter {
         this.allCards.push(token);
         player.decklist.tokens.push(token);
         player.decklist.allCards.push(token);
-        player.outsideTheGameCards.push(token);
+        player.outsideTheGameZone.addCard(token);
+        token.initializeZone(player.outsideTheGameZone);
 
         return token;
     }
 
     /**
-     * Removes a shield token from all relevant card lists
+     * Removes a shield token from all relevant card lists, including its zone
      * @param {import('./card/CardTypes.js').TokenCard} token
      */
     removeTokenFromPlay(token) {
-        Contract.assertEqual(token.location, Location.OutsideTheGame,
-            `Tokens must be moved to location ${Location.OutsideTheGame} before removing from play, instead found token at ${token.location}`
+        Contract.assertEqual(token.zoneName, ZoneName.OutsideTheGame,
+            `Tokens must be moved to zone ${ZoneName.OutsideTheGame} before removing from play, instead found token at ${token.zoneName}`
         );
 
         const player = token.owner;
         this.filterCardFromList(token, this.allCards);
         this.filterCardFromList(token, player.decklist.tokens);
         this.filterCardFromList(token, player.decklist.allCards);
-        this.filterCardFromList(token, player.outsideTheGameCards);
+        token.removeFromGame();
     }
 
     /**

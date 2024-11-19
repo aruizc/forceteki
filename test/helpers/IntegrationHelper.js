@@ -565,7 +565,7 @@ var customMatchers = {
                 const L = deck.length;
                 result.pass = L >= numCards;
                 if (result.pass) {
-                    result.pass = card.location === 'deck';
+                    result.pass = card.zoneName === 'deck';
                     if (!result.pass) {
                         result.message = `Expected ${card.title} to be in the deck.`;
                     } else {
@@ -600,7 +600,7 @@ var customMatchers = {
                     var notInDeck = [];
                     var notOnBottom = [];
                     for (let card of cards) {
-                        thisCardPass = card.location === 'deck';
+                        thisCardPass = card.zoneName === 'deck';
                         if (!thisCardPass) {
                             result.pass = thisCardPass;
                             notInDeck.push(card.title);
@@ -636,9 +636,9 @@ var customMatchers = {
             }
         };
     },
-    toBeInLocation: function () {
+    toBeInZone: function () {
         return {
-            compare: function (card, location, player = null) {
+            compare: function (card, zoneName, player = null) {
                 if (typeof card === 'string') {
                     throw new TestSetupError('This expectation requires a card object, not a name');
                 }
@@ -646,21 +646,12 @@ var customMatchers = {
 
                 const pileOwningPlayer = player?.player || card.owner;
 
-                const correctProperty = card.location === location;
-                const correctPile = pileOwningPlayer.getCardPile(location).includes(card);
-
-                if (correctProperty !== correctPile) {
-                    result.pass = false;
-                    result.message = `Card ${card.internalName} has inconsistent location state, card.location is '${card.location}' but it is not in the corresponding pile for ${pileOwningPlayer.name}'`;
-                    return result;
-                }
-
-                result.pass = correctProperty && correctPile;
+                result.pass = card.zoneName === zoneName;
 
                 if (result.pass) {
-                    result.message = `Expected ${card.internalName} not to be in location '${location}' but it is`;
+                    result.message = `Expected ${card.internalName} not to be in zone '${zoneName}' but it is`;
                 } else {
-                    result.message = `Expected ${card.internalName} to be in location '${location}' but it is in location '${card.location}'`;
+                    result.message = `Expected ${card.internalName} to be in zone '${zoneName}' but it is in zone '${card.zoneName}'`;
                 }
 
                 return result;
@@ -874,20 +865,20 @@ global.integration = function (definitions) {
 
                 if (options.phase !== 'setup') {
                     // Resources
-                    this.player1.setResourceCards(options.player1.resources, ['removed from game']);
-                    this.player2.setResourceCards(options.player2.resources, ['removed from game']);
+                    this.player1.setResourceCards(options.player1.resources, ['outsideTheGame']);
+                    this.player2.setResourceCards(options.player2.resources, ['outsideTheGame']);
 
                     // Arenas
-                    this.player1.setGroundArenaUnits(options.player1.groundArena, ['removed from game']);
-                    this.player2.setGroundArenaUnits(options.player2.groundArena, ['removed from game']);
-                    this.player1.setSpaceArenaUnits(options.player1.spaceArena, ['removed from game']);
-                    this.player2.setSpaceArenaUnits(options.player2.spaceArena, ['removed from game']);
+                    this.player1.setGroundArenaUnits(options.player1.groundArena, ['outsideTheGame']);
+                    this.player2.setGroundArenaUnits(options.player2.groundArena, ['outsideTheGame']);
+                    this.player1.setSpaceArenaUnits(options.player1.spaceArena, ['outsideTheGame']);
+                    this.player2.setSpaceArenaUnits(options.player2.spaceArena, ['outsideTheGame']);
 
                     // Hand + discard
-                    this.player1.setHand(options.player1.hand, ['removed from game']);
-                    this.player2.setHand(options.player2.hand, ['removed from game']);
-                    this.player1.setDiscard(options.player1.discard, ['removed from game']);
-                    this.player2.setDiscard(options.player2.discard, ['removed from game']);
+                    this.player1.setHand(options.player1.hand, ['outsideTheGame']);
+                    this.player2.setHand(options.player2.hand, ['outsideTheGame']);
+                    this.player1.setDiscard(options.player1.discard, ['outsideTheGame']);
+                    this.player2.setDiscard(options.player2.discard, ['outsideTheGame']);
 
                     // Set Leader state (deployed, exhausted, etc.)
                     this.player1.setLeaderStatus(options.player1.leader);
@@ -899,8 +890,8 @@ global.integration = function (definitions) {
                 this.player2.setBaseStatus(options.player2.base);
 
                 // Deck
-                this.player1.setDeck(options.player1.deck, ['removed from game']);
-                this.player2.setDeck(options.player2.deck, ['removed from game']);
+                this.player1.setDeck(options.player1.deck, ['outsideTheGame']);
+                this.player2.setDeck(options.player2.deck, ['outsideTheGame']);
 
                 // add named cards to this for easy reference (allows us to do "this.<cardName>")
                 // note that if cards map to the same property name (i.e., same title), then they won't be added

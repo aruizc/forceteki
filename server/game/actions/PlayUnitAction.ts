@@ -16,7 +16,7 @@ export class PlayUnitAction extends PlayCardAction {
         const cardPlayedEvent = new GameEvent(EventName.OnCardPlayed, context, {
             player: context.player,
             card: context.source,
-            originalLocation: context.source.location,
+            originalZone: context.source.zoneName,
             originallyOnTopOfDeck:
                 context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
             onPlayCardSource: context.onPlayCardSource,
@@ -28,11 +28,14 @@ export class PlayUnitAction extends PlayCardAction {
             context.player,
             context.source,
         );
-        const effect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
-        const player = effect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
+
+        // TODO TAKE CONTROL
+        const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
+        const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
+        const entersReady = this.entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady);
 
         const events = [
-            putIntoPlay({ target: context.source, controller: player, entersReady: this.entersReady }).generateEvent(context),
+            putIntoPlay({ target: context.source, controller: player, entersReady: entersReady }).generateEvent(context),
             cardPlayedEvent
         ];
 

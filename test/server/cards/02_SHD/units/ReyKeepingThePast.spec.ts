@@ -17,7 +17,7 @@ describe('Rey, Keeping the Past', function() {
                 context.player1.clickCard(context.rey);
 
                 // Rey should cost 5 since it ignores the villainy aspect
-                expect(context.player1.countExhaustedResources()).toBe(5);
+                expect(context.player1.exhaustedResourceCount).toBe(5);
             });
 
             it('heals 2 and gives Shield token to a non-heroism unit', function () {
@@ -83,7 +83,7 @@ describe('Rey, Keeping the Past', function() {
                         leader: 'kylo-ren#rash-and-deadly'
                     }
                 });
-
+              
                 const { context } = contextRef;
                 context.player1.clickCard(context.rey);
                 // Rey should cost 5 since it ignores the heroism aspect due to Kylo Ren being the leader

@@ -30,6 +30,8 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
     public constructor(owner: Game, player1: Player, player2: Player) {
         super(owner);
 
+        this.hiddenForPlayers = null;
+
         this._cards.set(player1, []);
         this._cards.set(player2, []);
     }
@@ -71,5 +73,24 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
         Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} for ${controller} from ${this} but it does not exist`);
 
         cardListForController.splice(cardIdx, 1);
+    }
+
+    public updateController(card: Card) {
+        Contract.assertTrue(card.canBeInPlay());
+
+        const controllerCardsList = this._cards.get(card.controller);
+
+        // card is already in its controller's list, nothing to do
+        if (controllerCardsList.includes(card)) {
+            return;
+        }
+
+        const opponentCardsList = this._cards.get(card.controller.opponent);
+        const removeCardIdx = opponentCardsList.indexOf(card);
+
+        Contract.assertTrue(removeCardIdx !== -1, `Attempting to update controller of card ${card.internalName} to ${card.controller} in ${this} but it is not in the arena`);
+
+        opponentCardsList.splice(removeCardIdx, 1);
+        controllerCardsList.push(card);
     }
 }

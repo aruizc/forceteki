@@ -23,6 +23,7 @@ import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployabl
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import { CaptureZone } from '../zone/CaptureZone';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -42,8 +43,6 @@ export class Card extends OngoingEffectSource {
     public readonly title: string;
     public readonly unique: boolean;
 
-    public controller: Player;
-
     protected override readonly id: string;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
@@ -52,20 +51,18 @@ export class Card extends OngoingEffectSource {
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
     protected _controller: Player;
-    protected defaultController: Player;
     protected _facedown = true;
     protected hasImplementationFile: boolean;   // this will be set by the ability setup methods
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
-    private _zone: Zone;
     private nextAbilityIdx = 0;
+    private _zone: Zone;
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
-    /** @deprecated use title instead**/
-    public override get name() {
-        return super.name;
+    public get controller(): Player {
+        return this._controller;
     }
 
     public get facedown(): boolean {
@@ -76,8 +73,9 @@ export class Card extends OngoingEffectSource {
         return this.getKeywords();
     }
 
-    public get zoneName(): ZoneName {
-        return this._zone?.name;
+    /** @deprecated use title instead**/
+    public override get name() {
+        return super.name;
     }
 
     public get traits(): Set<Trait> {
@@ -96,6 +94,10 @@ export class Card extends OngoingEffectSource {
         this._zone = zone;
     }
 
+    public get zoneName(): ZoneName {
+        return this._zone?.name;
+    }
+
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
         public readonly owner: Player,
@@ -112,8 +114,7 @@ export class Card extends OngoingEffectSource {
         this.title = cardData.title;
         this.unique = cardData.unique;
 
-        this.controller = owner;
-        this.defaultController = owner;
+        this._controller = owner;
         this.id = cardData.id;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
@@ -431,7 +432,6 @@ export class Card extends OngoingEffectSource {
 
     public canTriggerAbilities(context: AbilityContext, ignoredRequirements = []): boolean {
         return (
-            !this.facedown &&
             (ignoredRequirements.includes('triggeringRestrictions') ||
               !this.hasRestriction(AbilityRestriction.TriggerAbilities, context))
         );
@@ -443,35 +443,50 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* ZONE MANAGEMENT *******************************************
-    public moveTo(targetZone: MoveZoneDestination) {
+    /**
+     * Moves a card to a new zone, optionally resetting the card's controller back to its owner.
+     *
+     * @param targetZone Zone to move to
+     * @param resetController If true (default behavior), sets `card.controller = card.owner` on move. Set to
+     * false for a hypothetical situation where a controlled opponent unit is being moved between zones and
+     * needs to not change hands back to the owner.
+     */
+    public moveTo(targetZone: MoveZoneDestination, resetController = true) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const originalZone = this.zoneName;
-
         if (originalZone === targetZone) {
             return;
         }
 
-        this.cleanupBeforeMove(targetZone);
+        const prevZone = this.zoneName;
+        this.removeFromCurrentZone();
 
-        const prevZone = this._zone;
-
-        if (prevZone != null) {
-            if (prevZone.name === ZoneName.Base) {
-                Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${prevZone}`);
-                prevZone.removeLeader();
-            } else {
-                prevZone.removeCard(this);
-            }
+        if (resetController) {
+            this._controller = this.owner;
         }
 
         this.addSelfToZone(targetZone);
-        this.initializeForCurrentZone(prevZone.name);
+
+        this.postMoveSteps(prevZone);
+    }
+
+    protected removeFromCurrentZone() {
+        if (this._zone.name === ZoneName.Base) {
+            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this._zone}`);
+            this._zone.removeLeader();
+        } else {
+            this._zone.removeCard(this);
+        }
+    }
+
+    protected postMoveSteps(movedFromZone: ZoneName) {
+        this.initializeForCurrentZone(movedFromZone);
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
-            originalZone: originalZone,
-            newZone: targetZone
+            originalZone: movedFromZone,
+            newZone: this.zoneName
         });
 
         this.game.registerMovedCard(this);
@@ -486,8 +501,10 @@ export class Card extends OngoingEffectSource {
         this.initializeForCurrentZone(null);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected initializeForStartZone(): void {}
+
+    protected initializeForStartZone(): void {
+        this._controller = this.owner;
+    }
 
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
@@ -546,12 +563,6 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Deals with any engine effects of leaving the current zone before the move happens
-     */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected cleanupBeforeMove(nextZone: MoveZoneDestination) {}
-
-    /**
      * Updates the card's abilities for its current zone after being moved.
      * Called from {@link Game.resolveGameState} after event resolution.
      */
@@ -571,38 +582,37 @@ export class Card extends OngoingEffectSource {
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
             case ZoneName.GroundArena:
-                this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Base:
-                this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Resource:
-                this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Deck:
-                this.controller = this.owner;
                 this._facedown = true;
                 this.hiddenForController = true;
                 break;
 
             case ZoneName.Hand:
-                this.controller = this.owner;
                 this._facedown = false;
+                this.hiddenForController = false;
+                break;
+
+            case ZoneName.Capture:
+                this._facedown = true;
                 this.hiddenForController = false;
                 break;
 
             case ZoneName.Discard:
             case ZoneName.OutsideTheGame:
-                this.controller = this.owner;
                 this._facedown = false;
                 this.hiddenForController = false;
                 break;
@@ -654,17 +664,6 @@ export class Card extends OngoingEffectSource {
                 action.limit.reset();
             }
         }
-    }
-
-    public setDefaultController(player) {
-        this.defaultController = player;
-    }
-
-    public getModifiedController() {
-        if (EnumHelpers.isArena(this.zoneName)) {
-            return this.mostRecentOngoingEffect(EffectName.TakeControl) || this.defaultController;
-        }
-        return this.owner;
     }
 
     public isResource() {
@@ -760,45 +759,6 @@ export class Card extends OngoingEffectSource {
 
         return total;
     }
-
-    /**
-     * Deals with the engine effects of leaving play, making sure all statuses are removed. Anything which changes
-     * the state of the card should be here. This is also called in some strange corner cases e.g. for upgrades
-     * which aren't actually in play themselves when their parent (which is in play) leaves play.
-     */
-    public leavesPlay() {
-        // TODO: reuse this for capture logic
-        // // Remove any cards underneath from the game
-        // const cardsUnderneath = this.controller.getCardPile(this.uuid).map((a) => a);
-        // if (cardsUnderneath.length > 0) {
-        //     cardsUnderneath.forEach((card) => {
-        //         this.controller.moveCard(card, ZoneName.RemovedFromGame);
-        //     });
-        //     this.game.addMessage(
-        //         '{0} {1} removed from the game due to {2} leaving play',
-        //         cardsUnderneath,
-        //         cardsUnderneath.length === 1 ? 'is' : 'are',
-        //         this
-        //     );
-        // }
-    }
-
-    // TODO CAPTURE: will probably need to leverage or modify the below "child card" methods (see basecard.ts in L5R for reference)
-    // originally these were for managing province cards
-
-    // protected addChildCard(card, zone) {
-    //     this.childCards.push(card);
-    //     this.controller.moveCard(card, zone);
-    // }
-
-    // protected removeChildCard(card, zone) {
-    //     if (!card) {
-    //         return;
-    //     }
-
-    //     this.childCards = this.childCards.filter((a) => a !== card);
-    //     this.controller.moveCard(card, zone);
-    // }
 
     // createSnapshot() {
     //     const clone = new Card(this.owner, this.cardData);

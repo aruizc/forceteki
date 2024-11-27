@@ -28,6 +28,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
     public constructor(owner: Player, cards: TokenOrPlayableCard[]) {
         super(owner);
 
+        this.hiddenForPlayers = WildcardRelativePlayer.Any;
         this.name = ZoneName.Deck;
 
         this.deck = cards;
@@ -85,7 +86,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
     }
 
     public shuffle() {
-        Helpers.shuffle(this.deck);
+        this.deck = Helpers.shuffle(this.deck);
     }
 
     protected override checkZoneMatches(card: Card, zone: MoveZoneDestination | null) {

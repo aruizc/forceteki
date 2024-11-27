@@ -37,7 +37,7 @@ export class UpgradeCard extends UpgradeCardParent {
         super(owner, cardData);
         Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
 
-        this.defaultActions.push(new PlayUpgradeAction(this));
+        this.defaultActions.push(new PlayUpgradeAction({ card: this }));
     }
 
     public override isUpgrade(): this is UpgradeCard {
@@ -48,12 +48,11 @@ export class UpgradeCard extends UpgradeCardParent {
         const actions = super.getActions();
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayUpgradeAction(this, PlayType.Smuggle));
+            actions.push(new PlayUpgradeAction({ card: this, playType: PlayType.Smuggle }));
         }
         return actions;
     }
 
-    // TODO CAPTURE: we may need to use the "parent" concept for captured cards as well
     /** The card that this card is underneath */
     public get parentCard(): UnitCard {
         Contract.assertNotNullLike(this._parentCard);
@@ -66,19 +65,18 @@ export class UpgradeCard extends UpgradeCardParent {
         return true;
     }
 
-    public override moveTo(targetZone: MoveZoneDestination) {
+    public override moveTo(targetZone: MoveZoneDestination, resetController?: boolean) {
         Contract.assertFalse(this._parentCard && targetZone !== this._parentCard.zoneName,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
-        super.moveTo(targetZone);
+        super.moveTo(targetZone, resetController);
     }
 
     public attachTo(newParentCard: UnitCard) {
         Contract.assertTrue(newParentCard.isUnit());
-        Contract.assertTrue(newParentCard.isInPlay());
 
         // this assert needed for type narrowing or else the moveTo fails
-        Contract.assertTrue(newParentCard.zoneName !== ZoneName.Deck);
+        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
 
         if (this._parentCard) {
             this.unattach();
@@ -106,14 +104,6 @@ export class UpgradeCard extends UpgradeCardParent {
         }
 
         return true;
-    }
-
-    public override leavesPlay() {
-        if (this._parentCard) {
-            this.unattach();
-        }
-
-        super.leavesPlay();
     }
 
     /**

@@ -1,3 +1,4 @@
+import { log } from 'console';
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { TargetMode, WildcardZoneName, WildcardCardType, Trait, EventName } from '../../../core/Constants';
@@ -20,22 +21,14 @@ export default class ForceThrow extends EventCard {
             then: (thenContext) => ({
                 title: 'If you control a Force unit, you may deal damage to a unit equal to the cost of the discarded card',
                 optional: true,
-                zoneFilter: WildcardZoneName.AnyArena,
-                cardTypeFilter: WildcardCardType.Unit,
                 thenCondition: () => thenContext.source.controller.isTraitInPlay(Trait.Force),
-                immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
-                    ({ amount: this.getDiscardedCardCost(thenContext.events) })),
+                targetResolver: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    immediateEffect: AbilityHelper.immediateEffects.damage(() =>
+                        ({ amount: thenContext.events[0].card.printedCost }))
+                }
             })
         });
-    }
-
-    private getDiscardedCardCost(events: any[]): number {
-        const discardedCards = events.filter((event) => event.name === EventName.OnCardsDiscardedFromHand).map((event) => event.card);
-        if (discardedCards.length > 0) {
-            const card = discardedCards[0];
-            return card.cost;
-        }
-        return 0;
     }
 }
 

@@ -9,7 +9,7 @@ describe('Force Throw', function() {
                         groundArena: ['wampa', 'ezra-bridger#resourceful-troublemaker']
                     },
                     player2: {
-                        hand: ['karabast'],
+                        hand: ['karabast', 'battlefield-marine'],
                         groundArena: ['specforce-soldier', 'atst'],
                         spaceArena: ['tieln-fighter']
                     }
@@ -19,10 +19,22 @@ describe('Force Throw', function() {
 
                 // Damage dealt by opponent discarded card
                 context.player1.clickCard(context.forceThrow);
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+
+                // Opponent discards a card
                 context.player1.clickPrompt('Opponent');
+                context.player2.clickCard(context.karabast);
+
+                // Validate board state and options
                 expect(context.karabast).toBeInZone('discard');
+                expect(context.player1).toHaveEnabledPromptButton('Pass');
+
+                // Apply damage
+                context.player1.clickPrompt('Deal damage to a unit equal to the cost of Karabast (2 damage)');
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.specforceSoldier, context.atst, context.wampa, context.ezraBridger]);
                 context.player1.clickCard(context.atst);
+
+                // Assertions
                 expect(context.atst.damage).toBe(2);
                 expect(context.player2).toBeActivePlayer();
             });
@@ -35,8 +47,8 @@ describe('Force Throw', function() {
                         groundArena: ['wampa']
                     },
                     player2: {
-                        hand: ['karabast'],
-                        groundArena: ['specforce-soldier', 'atst']
+                        hand: ['karabast', 'battlefield-marine'],
+                        groundArena: ['specforce-soldier', 'atst', 'ezra-bridger#resourceful-troublemaker']
                     }
                 });
 
@@ -45,20 +57,21 @@ describe('Force Throw', function() {
                 // Opponent discards a card no force unit in play
                 context.player1.clickCard(context.forceThrow);
                 context.player1.clickPrompt('Opponent');
+                context.player2.clickCard(context.karabast);
 
                 expect(context.karabast).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should select myself to discard a card but no deal damage as there is not a force unit', function () {
+            it('should select myself to discard a card and deal damage to an enemy unit', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['force-throw', 'karabast'],
-                        groundArena: ['wampa']
+                        groundArena: ['wampa', 'ezra-bridger#resourceful-troublemaker']
                     },
                     player2: {
-                        groundArena: ['specforce-soldier', 'atst']
+                        groundArena: ['specforce-soldier']
                     }
                 });
 
@@ -67,8 +80,11 @@ describe('Force Throw', function() {
                 // Discard a card and no force unit in play
                 context.player1.clickCard(context.forceThrow);
                 context.player1.clickPrompt('You');
+                context.player1.clickPrompt('Deal damage to a unit equal to the cost of Karabast (2 damage)');
+                context.player1.clickCard(context.specforceSoldier);
 
                 expect(context.karabast).toBeInZone('discard');
+                expect(context.specforceSoldier).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
         });

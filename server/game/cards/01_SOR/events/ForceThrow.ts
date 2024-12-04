@@ -1,7 +1,6 @@
-import { log } from 'console';
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { TargetMode, WildcardZoneName, WildcardCardType, Trait, EventName } from '../../../core/Constants';
+import { TargetMode, WildcardCardType, Trait } from '../../../core/Constants';
 
 export default class ForceThrow extends EventCard {
     protected override getImplementationId() {
@@ -18,15 +17,17 @@ export default class ForceThrow extends EventCard {
                 mode: TargetMode.Player,
                 immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand({ amount: 1 }),
             },
-            then: (thenContext) => ({
-                title: 'If you control a Force unit, you may deal damage to a unit equal to the cost of the discarded card',
+            ifYouDo: (ifYouDoContext) => ({
+                title: `Deal damage to a unit equal to the cost of ${ifYouDoContext.events[0].card.title} (${ifYouDoContext.events[0].card.printedCost} damage)`,
                 optional: true,
-                thenCondition: () => thenContext.source.controller.isTraitInPlay(Trait.Force),
-                targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage(() =>
-                        ({ amount: thenContext.events[0].card.printedCost }))
-                }
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: () => ifYouDoContext.source.controller.isTraitInPlay(Trait.Force),
+                    onTrue: AbilityHelper.immediateEffects.selectCard({
+                        cardTypeFilter: WildcardCardType.Unit,
+                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0].card.printedCost })
+                    }),
+                    onFalse: AbilityHelper.immediateEffects.noAction()
+                })
             })
         });
     }

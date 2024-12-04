@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { WildcardCardType } from '../../../core/Constants';
+import { TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class PowerFailure extends EventCard {
     protected override getImplementationId() {
@@ -13,12 +13,18 @@ export default class PowerFailure extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Defeat any number of upgrades on a unit',
-            targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.defeat((context) => {
-                    const allUpgrades = context.target.upgrades;
-                    return { target: allUpgrades };
-                })
+            targetResolvers: {
+                selectedUnit: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    cardCondition: (card) => card.isUnit() && card.upgrades.length > 0,
+                },
+                unitUpgrades: {
+                    dependsOn: 'selectedUnit',
+                    cardTypeFilter: WildcardCardType.Upgrade,
+                    mode: TargetMode.Unlimited,
+                    cardCondition: (card, context) => context.targets.selectedUnit.upgrades.includes(card),
+                    immediateEffect: AbilityHelper.immediateEffects.defeat(),
+                }
             }
         });
     }

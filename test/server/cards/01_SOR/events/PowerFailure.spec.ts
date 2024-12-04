@@ -20,7 +20,11 @@ describe('Power Failure', function() {
 
                 context.player1.clickCard(context.powerFailure);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
+
                 context.player1.clickCard(context.pykeSentinel);
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickPrompt('Done');
 
                 expect(context.pykeSentinel.isUpgraded()).toBe(false);
                 expect(context.imperialInterceptor.isUpgraded()).toBe(true);
@@ -28,16 +32,17 @@ describe('Power Failure', function() {
                 expect(context.devotion).toBeInZone('discard');
             });
 
-            it('defeats all upgrades on a enemy unit', function () {
+            it('defeats selected upgrades on a unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.powerFailure);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
-                context.player1.clickCard(context.imperialInterceptor);
 
-                expect(context.imperialInterceptor.isUpgraded()).toBe(false);
-                expect(context.pykeSentinel.isUpgraded()).toBe(true);
-                expect(context.academyTraining).toBeInZone('discard');
+                context.player1.clickCard(context.imperialInterceptor);
+                context.player1.clickCard(context.shield);
+                context.player1.clickPrompt('Done');
+
+                expect(context.imperialInterceptor).toHaveExactUpgradeNames(['academy-training']);
             });
         });
     });

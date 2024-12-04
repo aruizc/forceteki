@@ -18,13 +18,13 @@ export default class ForceThrow extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand({ amount: 1 }),
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: `Deal damage to a unit equal to the cost of ${ifYouDoContext.events[0].card.title} (${ifYouDoContext.events[0].card.printedCost} damage)`,
+                title: ifYouDoContext.events[0]?.card ? `Deal damage to a unit equal to the cost of ${ifYouDoContext.events[0].card.title} (${ifYouDoContext.events[0].card.printedCost} damage)` : 'No card discarded',
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: () => ifYouDoContext.source.controller.isTraitInPlay(Trait.Force),
                     onTrue: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0].card.printedCost })
+                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0]?.card?.printedCost ?? 0 })
                     }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })

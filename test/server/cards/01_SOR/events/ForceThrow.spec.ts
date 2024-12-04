@@ -63,6 +63,27 @@ describe('Force Throw', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should select myself to discard a card but no cards to discard', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['force-throw'],
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        hand: ['karabast', 'battlefield-marine'],
+                        groundArena: ['specforce-soldier', 'atst', 'ezra-bridger#resourceful-troublemaker']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.forceThrow);
+                context.player1.clickPrompt('You');
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should select myself to discard a card and deal damage to an enemy unit', function () {
                 contextRef.setupTest({
                     phase: 'action',

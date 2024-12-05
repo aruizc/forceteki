@@ -13,6 +13,7 @@ export default class PowerFailure extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Defeat any number of upgrades on a unit',
+            optional: true,
             targetResolvers: {
                 selectedUnit: {
                     cardTypeFilter: WildcardCardType.Unit,

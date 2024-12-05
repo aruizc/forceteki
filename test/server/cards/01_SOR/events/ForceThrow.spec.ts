@@ -88,11 +88,11 @@ describe('Force Throw', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['force-throw', 'karabast'],
+                        hand: ['force-throw', 'strike-true'],
                         groundArena: ['wampa', 'ezra-bridger#resourceful-troublemaker']
                     },
                     player2: {
-                        groundArena: ['specforce-soldier']
+                        groundArena: ['atst']
                     }
                 });
 
@@ -101,11 +101,11 @@ describe('Force Throw', function() {
                 // Discard a card and no force unit in play
                 context.player1.clickCard(context.forceThrow);
                 context.player1.clickPrompt('You');
-                context.player1.clickPrompt('Deal damage to a unit equal to the cost of Karabast (2 damage)');
-                context.player1.clickCard(context.specforceSoldier);
+                context.player1.clickPrompt('Deal damage to a unit equal to the cost of Strike True (3 damage)');
+                context.player1.clickCard(context.atst);
 
-                expect(context.karabast).toBeInZone('discard');
-                expect(context.specforceSoldier).toBeInZone('discard');
+                expect(context.strikeTrue).toBeInZone('discard');
+                expect(context.atst.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
         });

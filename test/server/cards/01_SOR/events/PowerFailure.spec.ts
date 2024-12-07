@@ -22,6 +22,8 @@ describe('Power Failure', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
 
                 context.player1.clickCard(context.pykeSentinel);
+
+                expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.devotion, context.entrenched]);
 
                 context.player1.clickCard(context.devotion);
@@ -40,6 +42,7 @@ describe('Power Failure', function() {
 
                 context.player1.clickCard(context.powerFailure);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.imperialInterceptor);
                 context.player1.clickCard(context.shield);

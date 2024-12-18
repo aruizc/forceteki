@@ -60,6 +60,7 @@ describe('Maul, A Rival In Darkness', function() {
 
                 expect(context.p2Base.damage).toBe(2);
 
+                // Enemy units doesn't have Overwhelm
                 context.player2.clickCard(context.battlefieldMarine);
                 context.player2.clickCard(context.greedo);
                 expect(context.p1Base.damage).toBe(0);

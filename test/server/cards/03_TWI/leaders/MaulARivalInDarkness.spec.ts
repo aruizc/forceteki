@@ -1,46 +1,52 @@
 describe('Maul, A Rival In Darkness', function() {
     integration(function(contextRef) {
         describe('Maul, A Rival In Darkness\'s undeployed leader ability', function() {
-            beforeEach(function() {
+            it('should attack with a unit and it gains Overwhelm', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['death-star-stormtrooper', 'scout-bike-pursuer'],
+                        groundArena: ['zuckuss#bounty-hunter-for-hire', 'scout-bike-pursuer'],
                         leader: 'maul#a-rival-in-darkness',
                     },
                     player2: {
-                        groundArena: ['specforce-soldier']
+                        groundArena: ['specforce-soldier', 'battlefield-marine']
                     },
                 });
-            });
 
-            it('should attack with a unit and it gains Overwhelm', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.maulARivalInDarkness);
                 context.player1.clickPrompt('Attack with a unit. It gains Overwhelm for this attack');
 
-                context.player1.clickCard(context.deathStarStormtrooper);
+                expect(context.player1).toBeAbleToSelectExactly([context.zuckussBountyHunterForHire, context.scoutBikePursuer]);
+                context.player1.clickCard(context.zuckussBountyHunterForHire);
                 context.player1.clickCard(context.specforceSoldier);
-                expect(context.p2Base.damage).toBe(1);
+                expect(context.zuckussBountyHunterForHire.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(4);
+
+                // Next action phase
+                context.moveToNextActionPhase();
+                expect(context.player1).toBeActivePlayer();
+
+                context.player1.clickCard(context.zuckussBountyHunterForHire); // Attack without Overwhelm
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.p2Base.damage).toBe(4);
             });
         });
 
         describe('Maul, A Rival In Darkness\'s leader deployed ability', function() {
-            beforeEach(function() {
+            it('should give Overwhelm to all friendly units', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['death-star-stormtrooper', 'zuckuss#bounty-hunter-for-hire'],
+                        groundArena: ['death-star-stormtrooper', 'zuckuss#bounty-hunter-for-hire', 'greedo#slow-on-the-draw'],
                         leader: { card: 'maul#a-rival-in-darkness', deployed: true },
                     },
                     player2: {
-                        groundArena: ['specforce-soldier', 'wampa']
+                        groundArena: ['specforce-soldier', 'wampa', 'battlefield-marine']
                     },
                 });
-            });
 
-            it('should give Overwhelm to all friendly units', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.zuckussBountyHunterForHire);
@@ -53,6 +59,10 @@ describe('Maul, A Rival In Darkness', function() {
                 context.player1.clickCard(context.specforceSoldier);
 
                 expect(context.p2Base.damage).toBe(2);
+
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.greedo);
+                expect(context.p1Base.damage).toBe(0);
             });
         });
     });

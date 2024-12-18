@@ -63,6 +63,7 @@ describe('Maul, A Rival In Darkness', function() {
                 // Enemy units doesn't have Overwhelm
                 context.player2.clickCard(context.battlefieldMarine);
                 context.player2.clickCard(context.greedo);
+                context.player1.clickPrompt('Pass');
                 expect(context.p1Base.damage).toBe(0);
             });
         });

@@ -11,7 +11,7 @@ export default class OldAccessCodes extends UpgradeCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'If an opponent controls more units than you, draw a card',
+            title: 'Draw a card',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.getUnitsInPlay().length < context.player.opponent.getUnitsInPlay().length,
                 onTrue: AbilityHelper.immediateEffects.draw(),

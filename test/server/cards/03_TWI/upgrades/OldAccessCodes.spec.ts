@@ -1,7 +1,7 @@
 describe('Old Access Codes', function() {
     integration(function(contextRef) {
         describe('Old Access Codes ability', function() {
-            it('should draw a card', function () {
+            it('should draw a card when the controller has fewer units than the opponent', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -24,7 +24,7 @@ describe('Old Access Codes', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not draw a card', function () {
+            it('should not draw a card as the controller has more units than the opponent', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -32,7 +32,7 @@ describe('Old Access Codes', function() {
                         groundArena: ['battlefield-marine']
                     },
                     player2: {
-                        groundArena: ['r2d2#ignoring-protocol']
+                        groundArena: [{ card: 'r2d2#ignoring-protocol', upgrades: ['academy-training'] }]
                     }
                 });
 

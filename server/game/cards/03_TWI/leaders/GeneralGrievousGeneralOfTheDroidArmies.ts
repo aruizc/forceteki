@@ -13,10 +13,10 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Give a Droid unit Sentinel for this phase',
-            cost: [AbilityHelper.costs.exhaustSelf()],
+            cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Droid),
+                cardCondition: (card) => card.hasSomeTrait(Trait.Droid),
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel })
                 })
@@ -28,16 +28,16 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
         this.addOnAttackAbility({
             title: 'Give a Droid unit +1/+0 and Sentinel for this phase',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.selectCard({
+            targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Droid),
-                innerSystem: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                cardCondition: (card) => card.hasSomeTrait(Trait.Droid),
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: [
                         AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }),
                         AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel })
                     ]
-                }),
-            })
+                })
+            }
         });
     }
 }
